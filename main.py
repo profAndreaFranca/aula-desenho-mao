@@ -1,6 +1,35 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import math
+
+# Indices dos landmarks usados pelo MediaPipe Hands.
+THUMB_TIP = 4
+INDEX_FINGER_TIP = 8
+INDEX_FINGER_PIP = 6
+MIDDLE_FINGER_TIP = 12
+MIDDLE_FINGER_PIP = 10
+RING_FINGER_TIP = 16
+RING_FINGER_PIP = 14
+PINKY_TIP = 20
+PINKY_PIP = 18
+
+# Cores em BGR para um efeito neon/laser sobre o fundo preto.
+LASER_CORE_COLOR = (255, 255, 255)
+DRAWING_COLOR_PALETTE = [
+    ((255, 80, 0), (255, 255, 0)),
+    ((255, 0, 180), (255, 120, 255)),
+    ((0, 180, 255), (0, 255, 255)),
+    ((0, 255, 80), (160, 255, 160)),
+    ((180, 0, 255), (230, 120, 255)),
+    ((255, 255, 0), (255, 255, 180)),
+]
+WINDOW_NAME = "Desenho com Gestos"
+CAPTURE_WIDTH = 1280
+CAPTURE_HEIGHT = 720
+DISPLAY_WINDOW_WIDTH = 1400
+DISPLAY_WINDOW_HEIGHT = 900
+DRAWING_SELECTION_RADIUS = 24
 
 cap = cv2.VideoCapture(0)
 mp_hands = mp.solutions.hands
