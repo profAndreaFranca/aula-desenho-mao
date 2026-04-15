@@ -124,6 +124,45 @@ def render_laser_canvas(canvas):
     glow = cv2.addWeighted(glow, 1.2, canvas, 0.3, 0)
     return cv2.add(glow, canvas)
 
+#funções de composição e seleção de desenhos
+def compose_drawings(drawings, frame_shape):
+    """Combina todos os desenhos independentes em um unico canvas para exibir."""
+    combined = create_empty_canvas(frame_shape)
+
+    for drawing in drawings:
+        combined = cv2.add(combined, drawing)
+
+    return combined
+
+def point_over_drawing(drawing, point, radius=DRAWING_SELECTION_RADIUS):
+    """Verifica se o ponto esta sobre pixels do desenho, com uma pequena folga."""
+    x, y = point
+    height, width = drawing.shape[:2]
+
+    x1 = max(0, x - radius)
+    y1 = max(0, y - radius)
+    x2 = min(width, x + radius + 1)
+    y2 = min(height, y + radius + 1)
+
+    if x1 >= x2 or y1 >= y2:
+        return False
+
+    region = drawing[y1:y2, x1:x2]
+    return np.any(region)
+
+def select_drawing(drawings, point, preferred_index=None):
+    """
+    Escolhe primeiro o desenho sob a mao; se nao houver nenhum, usa o mais
+    recente como fallback.
+    """
+    for index in range(len(drawings) - 1, -1, -1):
+        if point_over_drawing(drawings[index], point):
+            return index
+
+    if preferred_index is not None and 0 <= preferred_index < len(drawings):
+        return preferred_index
+
+    return None
 
 while True:
     success, frame = cap.read()
