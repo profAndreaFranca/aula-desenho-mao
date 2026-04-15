@@ -88,6 +88,19 @@ def create_empty_canvas(shape):
     """Cria um canvas vazio com o tamanho do frame atual."""
     return np.zeros(shape, dtype=np.uint8)
 
+def move_canvas(canvas, delta_x, delta_y):
+    """
+    Move todo o desenho existente no canvas sem fazer o conteudo reaparecer
+    do outro lado da tela.
+    """
+    translation_matrix = np.float32([[1, 0, delta_x], [0, 1, delta_y]])
+    return cv2.warpAffine(
+        canvas,
+        translation_matrix,
+        (canvas.shape[1], canvas.shape[0]),
+        borderMode=cv2.BORDER_CONSTANT,
+        borderValue=(0, 0, 0),
+    )
 
 while True:
     success, frame = cap.read()
