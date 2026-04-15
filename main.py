@@ -102,6 +102,29 @@ def move_canvas(canvas, delta_x, delta_y):
         borderValue=(0, 0, 0),
     )
 
+#funções visuais do laser
+def drawing_colors(drawing_index):
+    """Retorna as cores do efeito laser para um desenho especifico."""
+    return DRAWING_COLOR_PALETTE[drawing_index % len(DRAWING_COLOR_PALETTE)]
+
+def draw_laser_line(canvas, start_point, end_point, colors):
+    """
+    Desenha um traco com varias camadas para simular um feixe de laser.
+    """
+    outer_color, inner_color = colors
+    cv2.line(canvas, start_point, end_point, outer_color, 10)
+    cv2.line(canvas, start_point, end_point, inner_color, 5)
+    cv2.line(canvas, start_point, end_point, LASER_CORE_COLOR, 2) 
+    
+def render_laser_canvas(canvas):
+    """
+    Cria um brilho suave a partir do desenho para destacar o traco.
+    """
+    glow = cv2.GaussianBlur(canvas, (0, 0), sigmaX=10, sigmaY=10)
+    glow = cv2.addWeighted(glow, 1.2, canvas, 0.3, 0)
+    return cv2.add(glow, canvas)
+
+
 while True:
     success, frame = cap.read()
 
