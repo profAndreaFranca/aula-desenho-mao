@@ -52,6 +52,13 @@ def clear_canvas(canvas):
     """Preenche a area de desenho com preto."""
     canvas[:] = 0
 
+def finger_is_up(hand_landmarks, tip_id, pip_id):
+    """
+    Considera o dedo levantado quando a ponta esta acima da articulacao PIP.
+    A imagem usa origem no topo, entao menor Y significa mais alto.
+    """
+    return hand_landmarks.landmark[tip_id].y < hand_landmarks.landmark[pip_id].y
+
 while True:
     success, frame = cap.read()
 
