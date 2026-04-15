@@ -58,7 +58,12 @@ def finger_is_up(hand_landmarks, tip_id, pip_id):
     A imagem usa origem no topo, entao menor Y significa mais alto.
     """
     return hand_landmarks.landmark[tip_id].y < hand_landmarks.landmark[pip_id].y
-
+    
+def landmark_point(hand_landmarks, landmark_id, frame_width, frame_height):
+    """Converte um landmark normalizado do MediaPipe para ponto em pixels."""
+    landmark = hand_landmarks.landmark[landmark_id]
+    return (int(landmark.x * frame_width), int(landmark.y * frame_height))
+    
 while True:
     success, frame = cap.read()
 
