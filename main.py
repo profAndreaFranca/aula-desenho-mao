@@ -63,7 +63,19 @@ def landmark_point(hand_landmarks, landmark_id, frame_width, frame_height):
     """Converte um landmark normalizado do MediaPipe para ponto em pixels."""
     landmark = hand_landmarks.landmark[landmark_id]
     return (int(landmark.x * frame_width), int(landmark.y * frame_height))
-    
+
+def thumb_index_touching(hand_landmarks, frame_width, frame_height, threshold=35):
+    """
+    Detecta se polegar e indicador estao encostando com base na distancia
+    entre suas pontas em pixels.
+    """
+    thumb_point = landmark_point(hand_landmarks, THUMB_TIP, frame_width, frame_height)
+    index_point = landmark_point(hand_landmarks, INDEX_FINGER_TIP, frame_width, frame_height)
+
+    distance = math.hypot(index_point[0] - thumb_point[0], index_point[1] - thumb_point[1])
+    return distance < threshold
+
+
 while True:
     success, frame = cap.read()
 
