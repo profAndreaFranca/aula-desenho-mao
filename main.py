@@ -48,6 +48,8 @@ last_drawn_index = None
 previous_point = None
 previous_move_point = None
 
+def main():
+
 def clear_canvas(canvas):
     """Preenche a area de desenho com preto."""
     canvas[:] = 0
