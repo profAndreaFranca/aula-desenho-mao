@@ -60,6 +60,158 @@ def main():
     previous_point = None
     previous_move_point = None
 
+    while True:
+        success, frame = cap.read()
+        if not success:
+            print("Falha ao capturar frame da webcam.")
+            break
+
+        # Espelha a imagem para um comportamento mais natural.
+        frame = cv2.flip(frame, 1)
+        frame_height, frame_width = frame.shape[:2]
+
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = hands.process(rgb_frame)
+        display = np.zeros_like(frame)
+
+        current_mode = "Aguardando gesto"
+        
+        if results.multi_hand_landmarks:
+            hand_landmarks = results.multi_hand_landmarks[0]
+            mp_drawing.draw_landmarks(
+                display,
+                hand_landmarks,
+                mp_hands.HAND_CONNECTIONS,
+                None,
+                mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=2, circle_radius=2),
+            )
+
+            index_up = finger_is_up(hand_landmarks, INDEX_FINGER_TIP, INDEX_FINGER_PIP)
+            middle_up = finger_is_up(hand_landmarks, MIDDLE_FINGER_TIP, MIDDLE_FINGER_PIP)
+            ring_up = finger_is_up(hand_landmarks, RING_FINGER_TIP, RING_FINGER_PIP)
+            pinky_up = finger_is_up(hand_landmarks, PINKY_TIP, PINKY_PIP)
+            pinch_move = thumb_index_touching(hand_landmarks, frame_width, frame_height)
+            open_hand = index_up and middle_up and ring_up and pinky_up
+
+            current_point = landmark_point(
+                hand_landmarks,
+                INDEX_FINGER_TIP,
+                frame_width,
+                frame_height,
+            )
+            pinch_point = thumb_index_midpoint(hand_landmarks, frame_width, frame_height)
+            
+            if open_hand:
+                current_mode = "Movendo mao sem desenhar"
+                active_drawing_index = None
+                selected_drawing_index = None
+                previous_point = None
+                previous_move_point = None
+            elif pinch_move:
+                active_drawing_index = None
+                previous_point = None
+
+                if previous_move_point is None:
+                    selected_drawing_index = select_drawing(
+                        drawings,
+                        pinch_point,
+                        preferred_index=last_drawn_index,
+                    )
+
+                if previous_move_point is not None:
+                    delta_x = pinch_point[0] - previous_move_point[0]
+                    delta_y = pinch_point[1] - previous_move_point[1]
+                    if selected_drawing_index is not None:
+                        drawings[selected_drawing_index] = move_canvas(
+                            drawings[selected_drawing_index],
+                            delta_x,
+                            delta_y,
+                        )
+
+                previous_move_point = pinch_point
+                if selected_drawing_index is not None:
+                    current_mode = f"Movendo desenho {selected_drawing_index + 1}"
+                else:
+                    current_mode = "Nenhum desenho selecionado"
+            elif pinky_up and not index_up and not middle_up and not ring_up:
+                drawings.clear()
+                active_drawing_index = None
+                selected_drawing_index = None
+                last_drawn_index = None
+                previous_point = None
+                previous_move_point = None
+                current_mode = "Tela limpa por mindinho"
+            elif index_up and not middle_up and not ring_up and not pinky_up:
+                current_mode = "Desenhando"
+                previous_move_point = None
+                selected_drawing_index = None
+
+                if previous_point is None:
+                    drawings.append(create_empty_canvas(frame.shape))
+                    active_drawing_index = len(drawings) - 1
+                    last_drawn_index = active_drawing_index
+                    previous_point = current_point
+
+                draw_laser_line(
+                    drawings[active_drawing_index],
+                    previous_point,
+                    current_point,
+                    drawing_colors(active_drawing_index),
+                )
+                previous_point = current_point
+            else:
+                active_drawing_index = None
+                selected_drawing_index = None
+                previous_point = None
+                previous_move_point = None
+        else:
+            active_drawing_index = None
+            selected_drawing_index = None
+            previous_point = None
+            previous_move_point = None
+        # Mantem o fundo preto e sobrepoe o desenho do usuario.
+        combined_canvas = compose_drawings(drawings, frame.shape)
+        display = cv2.add(display, render_laser_canvas(combined_canvas))
+        
+        cv2.putText(
+            display,
+            current_mode,
+            (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (255, 255, 255),
+            2,
+            cv2.LINE_AA,
+        )
+        
+        cv2.putText(
+            display,
+            "Indicador: desenha | Pinca: move desenho | Mindinho: limpa | Mao aberta: move mao",
+            (10, frame_height - 20),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (255, 255, 255),
+            1,
+            cv2.LINE_AA,
+        )
+        
+        cv2.imshow(WINDOW_NAME, display)
+
+        key = cv2.waitKey(1) & 0xFF
+
+        if key == ord("c"):
+            drawings.clear()
+            active_drawing_index = None
+            selected_drawing_index = None
+            last_drawn_index = None
+            previous_point = None
+            previous_move_point = None
+        elif key == ord("q"):
+            break
+    hands.close()
+    cap.release()
+    cv2.destroyAllWindows()
+
 
 def clear_canvas(canvas):
     """Preenche a area de desenho com preto."""
