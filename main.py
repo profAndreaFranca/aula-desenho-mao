@@ -329,3 +329,5 @@ def select_drawing(drawings, point, preferred_index=None):
 
     return None
 
+if __name__ == "__main__":
+    main()
