@@ -75,6 +75,15 @@ def thumb_index_touching(hand_landmarks, frame_width, frame_height, threshold=35
     distance = math.hypot(index_point[0] - thumb_point[0], index_point[1] - thumb_point[1])
     return distance < threshold
 
+def thumb_index_midpoint(hand_landmarks, frame_width, frame_height):
+    """Usa o meio da pinca como ponto de selecao e movimento."""
+    thumb_point = landmark_point(hand_landmarks, THUMB_TIP, frame_width, frame_height)
+    index_point = landmark_point(hand_landmarks, INDEX_FINGER_TIP, frame_width, frame_height)
+    return (
+        (thumb_point[0] + index_point[0]) // 2,
+        (thumb_point[1] + index_point[1]) // 2,
+    )
+
 
 while True:
     success, frame = cap.read()
