@@ -84,6 +84,10 @@ def thumb_index_midpoint(hand_landmarks, frame_width, frame_height):
         (thumb_point[1] + index_point[1]) // 2,
     )
 
+def create_empty_canvas(shape):
+    """Cria um canvas vazio com o tamanho do frame atual."""
+    return np.zeros(shape, dtype=np.uint8)
+
 
 while True:
     success, frame = cap.read()
