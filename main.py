@@ -40,9 +40,13 @@ hands = mp_hands.Hands(
     min_tracking_confidence=0.7,
 )
 mp_draw = mp.solutions.drawing_utils
-canvas = None
-prev_x = None
-prev_y = None
+
+drawings = []
+active_drawing_index = None
+selected_drawing_index = None
+last_drawn_index = None
+previous_point = None
+previous_move_point = None
 
 def clear_canvas(canvas):
     canvas[:] = 0
